@@ -1,0 +1,10 @@
+/venv
+.env
+data_csv/
+__pycache__/
+.ipynb_checkpoints/
+mlruns/
+mlflow.db
+*.joblib
+model.pkl
+/train_test
