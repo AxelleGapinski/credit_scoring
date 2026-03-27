@@ -1,0 +1,30 @@
+name: Sync to Hugging Face hub
+
+on:
+  push:
+    branches: 
+      - dev
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Push dev/main to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git checkout -B main
+          git push --force https://slytherax:$HF_TOKEN@huggingface.co/spaces/slytherax/credit_scoring main
