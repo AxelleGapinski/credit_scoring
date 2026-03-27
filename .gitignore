@@ -6,5 +6,7 @@ __pycache__/
 mlruns/
 mlflow.db
 *.joblib
-/train_test
+/train_test/sample_test.csv
+/train_test/train_final.csv
+/train_test/test_final.csv
 test
