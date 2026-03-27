@@ -6,6 +6,5 @@ __pycache__/
 mlruns/
 mlflow.db
 *.joblib
-model.pkl
 /train_test
 test
