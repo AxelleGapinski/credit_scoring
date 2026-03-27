@@ -5,7 +5,7 @@ import re
 
 # chargement du modèle et des données
 model = joblib.load('model.pkl')
-data = pd.read_csv('C:/Users/axell/Documents/projets_code/projet_6/projet6/train_test/train_final.csv')
+data = pd.read_csv('./train_test/sample_train.csv')
 
 THRESHOLD = 0.46  # meilleur seuil
 
