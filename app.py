@@ -2,13 +2,11 @@ import gradio as gr
 import joblib
 import pandas as pd
 import re
-# pour log infos ####----
 import os
 import json
 import time
 import uuid
 from datetime import datetime
-####----
 
 # chargement du modèle et des données
 model = joblib.load('model.pkl')
@@ -16,7 +14,6 @@ data = pd.read_csv('./train_test/sample_train.csv')
 
 THRESHOLD = 0.46  # meilleur seuil
 
-####----
 # Logging local
 LOG_DIR = "logs"
 LOG_FILE = os.path.join(LOG_DIR, "predictions.jsonl")
@@ -32,7 +29,7 @@ def log_prediction(
     error_message=None
 ):
     """
-    Enregistre un appel de prédiction dans un fichier JSONL.
+    Pour enregistre un appel de prédiction dans un fichier jsonl
     """
     record = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -49,21 +46,17 @@ def log_prediction(
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-####----
-
 def clean_col_names(df):
     df.columns = [re.sub(r'[^A-Za-z0-9_]', '_', col) for col in df.columns]
     return df
 
 data = clean_col_names(data)
 
-####----
-# Colonnes utilisées pour le modèle (sans ID ni target)
 FEATURE_COLUMNS = [col for col in data.columns if col not in ["SK_ID_CURR", "TARGET"]]
 
 def make_json_serializable(d):
     """
-    Convertit les types numpy/pandas en types Python simples pour JSON.
+    Convertit les types numpy/pandas en types Python (pour json)
     """
     clean_dict = {}
     for k, v in d.items():
@@ -75,15 +68,10 @@ def make_json_serializable(d):
             clean_dict[k] = v
     return clean_dict
 
-###----
-
 # Prédiction
-# =========================
 def predict(client_id: int):
     """
-    Prend un ID de client (SK_ID_CURR), récupère les features du client,
-    retourne la probabilité de défaut et la décision.
-    Logge aussi les appels pour monitoring / drift.
+    Prend un ID de client (SK_ID_CURR), récupère les features du client, retourne la probabilité de défaut et la décision + log les appels
     """
     start_time = time.time()
 
@@ -103,7 +91,7 @@ def predict(client_id: int):
         )
         return "ID invalide", ""
 
-    # check si le client existe
+    #check si le client existe
     if client_id not in data['SK_ID_CURR'].values:
         latency_ms = (time.time() - start_time) * 1000
         log_prediction(
@@ -123,7 +111,7 @@ def predict(client_id: int):
     # récupérer les features du client
     client = client_row[FEATURE_COLUMNS]
 
-    # features brutes pour logging / drift
+    # features brutes pour logging
     input_features_dict = make_json_serializable(client.iloc[0].to_dict())
 
     # prédiction
@@ -147,7 +135,6 @@ def predict(client_id: int):
         f"{proba:.2%}",
         decision
     )
-#-----
 
 # Interface Gradio
 demo = gr.Interface(
