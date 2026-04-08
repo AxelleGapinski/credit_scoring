@@ -10,3 +10,4 @@ mlflow.db
 /train_test/train_final.csv
 /train_test/test_final.csv
 test
+credit_scoring\monitoring\analyze_logs.py
