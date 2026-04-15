@@ -74,8 +74,10 @@ def predict(client_id: int):
     Prend un ID de client (SK_ID_CURR), récupère les features du client, retourne la probabilité de défaut et la décision + log les appels
     """
     start_time = time.time()
+    timings = {}
 
     # check si l'ID est en format valide
+    t0 = time.time()
     try:
         client_id = int(client_id)
     except (ValueError, TypeError):
@@ -90,8 +92,10 @@ def predict(client_id: int):
             error_message="ID invalide"
         )
         return "ID invalide", ""
+    timings["validation"] = time.time() - t0
 
     #check si le client existe
+    t0 = time.time()
     if client_id not in data['SK_ID_CURR'].values:
         latency_ms = (time.time() - start_time) * 1000
         log_prediction(
@@ -104,23 +108,31 @@ def predict(client_id: int):
             error_message="Client introuvable"
         )
         return "Client introuvable", ""
+    timings["search_client"] = time.time() - t0
 
     # récupérer la ligne complète du client
+    t0 = time.time()
     client_row = data[data['SK_ID_CURR'] == client_id]
+    timings["get_client_row"] = time.time() - t0
 
     # récupérer les features du client
+    t0 = time.time()
     client = client_row[FEATURE_COLUMNS]
+    timings["extract_client_features"] = time.time() - t0
 
     # features brutes pour logging
     input_features_dict = make_json_serializable(client.iloc[0].to_dict())
 
     # prédiction
+    t0 = time.time()
     proba = model.predict_proba(client)[0][1]
     decision = "Crédit à refuser" if proba >= THRESHOLD else "Crédit à accorder"
+    timings["prediction"] = time.time() - t0
 
     latency_ms = (time.time() - start_time) * 1000
 
     # log succès
+    t0 = time.time()
     log_prediction(
         client_id=client_id,
         input_features=input_features_dict,
@@ -130,11 +142,12 @@ def predict(client_id: int):
         status="success",
         error_message=None
     )
+    timings["logging_results"] = time.time() - t0
 
-    return (
-        f"{proba:.2%}",
-        decision
-    )
+    timings["total"] = time.time() - start_time
+    print("TIMINGS:", {k: f"{v*1000:.2f} ms" for k, v in timings.items()})
+
+    return (f"{proba:.2%}", decision)
 
 # Interface Gradio
 demo = gr.Interface(
