@@ -41,6 +41,11 @@ latency_hist = pd.cut(df['latency_ms'], bins=20).value_counts().sort_index()
 latency_hist.index = latency_hist.index.astype(str)
 st.bar_chart(latency_hist)
 
+# distribution des prédictions
+st.subheader("Répartition des décisions du modèle")
+decision_counts = df['prediction'].value_counts()
+st.bar_chart(decision_counts)
+
 # Drift des variables
 st.subheader("Drift des variables")
 
@@ -67,7 +72,19 @@ for col in ['AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_CHILDREN', 'AMT_ANNUITY', 'NA
 drift_df = pd.DataFrame(drift_results)
 drift_df["variation_pct"] = (drift_df["variation"] * 100).round(2)
 
-st.dataframe(drift_df[["feature", "ref_mean", "prod_mean", "variation_pct"]])
+# seuil de drift 
+threshold = 0.1
+
+# flag alerte drift
+drift_df["drift_detected"] = drift_df["variation"] > threshold
+
+st.dataframe(drift_df[["feature", "ref_mean", "prod_mean", "variation_pct", "drift_detected"]])
+
+global_drift = drift_df["drift_detected"].any()
+if global_drift:
+    st.error("Drift détecté sur certaines variables")
+else:
+    st.success("Aucun drift détecté")
 
 # Statut des requêtes erreur ou success
 st.subheader("Répartition requêtes erreurs/succès")
@@ -84,3 +101,4 @@ mean_timings = df[['timing_validation', 'timing_search_client', 'timing_get_clie
 mean_timings.index = [c.replace('timing_', '') for c in mean_timings.index]
 
 st.bar_chart(mean_timings)
+
