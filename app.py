@@ -26,7 +26,8 @@ def log_prediction(
     prediction_proba=None,
     latency_ms=None,
     status="success",
-    error_message=None
+    error_message=None,
+    timings=None
 ):
     """
     Pour enregistre un appel de prédiction dans un fichier jsonl
@@ -40,7 +41,8 @@ def log_prediction(
         "prediction_proba": prediction_proba,
         "latency_ms": latency_ms,
         "status": status,
-        "error_message": error_message
+        "error_message": error_message,
+        "timings": timings
     }
 
     with open(LOG_FILE, "a", encoding="utf-8") as f:
@@ -89,7 +91,8 @@ def predict(client_id: int):
             prediction_proba=None,
             latency_ms=latency_ms,
             status="error",
-            error_message="ID invalide"
+            error_message="ID invalide",
+            timings=timings
         )
         return "ID invalide", ""
     timings["validation"] = time.time() - t0
@@ -105,7 +108,8 @@ def predict(client_id: int):
             prediction_proba=None,
             latency_ms=latency_ms,
             status="error",
-            error_message="Client introuvable"
+            error_message="Client introuvable",
+            timings=timings
         )
         return "Client introuvable", ""
     timings["search_client"] = time.time() - t0
@@ -133,6 +137,7 @@ def predict(client_id: int):
 
     # log succès
     t0 = time.time()
+    timings["total"] = time.time() - start_time
     log_prediction(
         client_id=client_id,
         input_features=input_features_dict,
@@ -140,7 +145,8 @@ def predict(client_id: int):
         prediction_proba=float(proba),
         latency_ms=latency_ms,
         status="success",
-        error_message=None
+        error_message=None,
+        timings=timings
     )
     timings["logging_results"] = time.time() - t0
 

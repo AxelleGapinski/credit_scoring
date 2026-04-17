@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import json
+ref_data = pd.read_csv('./train_test/sample_train.csv')
 
 ##
 # Dashboard streamlit d'analyse des logs de prédiction
@@ -34,21 +35,24 @@ latency_hist = pd.cut(df['latency_ms'], bins=20).value_counts().sort_index()
 latency_hist.index = latency_hist.index.astype(str)
 st.bar_chart(latency_hist)
 
-# clients avec + grandes latences
-st.subheader("Clients avec les plus fortes latences")
-top_latency = df.sort_values('latency_ms', ascending=False).head(10)
-st.dataframe(
-    top_latency[['timestamp','client_id','latency_ms','status']]
-)
-# Distribution prédictions
-st.subheader("Distribution des prédictions")
-pred_counts = df['prediction'].value_counts()
-st.bar_chart(pred_counts)
-
 # drift des prédictions
-st.subheader("Drift des prédictions")
-pred_ratio = df['prediction'].value_counts(normalize=True)
-st.bar_chart(pred_ratio)
+st.subheader("Drift des variables")
+drift_results = []
+
+for col in ['AMT_INCOME_TOTAL', 'AMT_CREDIT']:  # adapte
+    if col in df.columns and col in ref_data.columns:
+        ref_mean = ref_data[col].mean()
+        prod_mean = df[col].mean()
+        variation = abs(ref_mean - prod_mean) / (abs(ref_mean) + 1e-6)
+        drift_results.append({
+            "feature": col,
+            "ref_mean": ref_mean,
+            "prod_mean": prod_mean,
+            "variation": variation
+        })
+
+drift_df = pd.DataFrame(drift_results)
+st.dataframe(drift_df)
 
 # Statut des requêtes erreur ou success
 st.subheader("Répartition requêteserreurs/succès")
