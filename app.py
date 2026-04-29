@@ -2,11 +2,9 @@ import gradio as gr
 import joblib
 import pandas as pd
 import re
-import os
-import json
 import time
-import uuid
 from datetime import datetime
+from db_logging import init_db, log_prediction as db_log_prediction
 
 # chargement du modèle et des données
 model = joblib.load('model.pkl')
@@ -14,39 +12,8 @@ data = pd.read_csv('./train_test/sample_train.csv')
 
 THRESHOLD = 0.46  # meilleur seuil
 
-# Logging local
-LOG_DIR = "logs"
-LOG_FILE = os.path.join(LOG_DIR, "predictions.jsonl")
-os.makedirs(LOG_DIR, exist_ok=True)
-
-def log_prediction(
-    client_id,
-    input_features=None,
-    prediction=None,
-    prediction_proba=None,
-    latency_ms=None,
-    status="success",
-    error_message=None,
-    timings=None
-):
-    """
-    Pour enregistre un appel de prédiction dans un fichier jsonl
-    """
-    record = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "request_id": str(uuid.uuid4()),
-        "client_id": client_id,
-        "input_features": input_features if input_features is not None else {},
-        "prediction": prediction,
-        "prediction_proba": prediction_proba,
-        "latency_ms": latency_ms,
-        "status": status,
-        "error_message": error_message,
-        "timings": timings
-    }
-
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+# initaliser base de données
+init_db() 
 
 def clean_col_names(df):
     df.columns = [re.sub(r'[^A-Za-z0-9_]', '_', col) for col in df.columns]
@@ -84,7 +51,7 @@ def predict(client_id: int):
         client_id = int(client_id)
     except (ValueError, TypeError):
         latency_ms = (time.time() - start_time) * 1000
-        log_prediction(
+        db_log_prediction(
             client_id=client_id,
             input_features={},
             prediction=None,
@@ -101,7 +68,7 @@ def predict(client_id: int):
     t0 = time.time()
     if client_id not in data['SK_ID_CURR'].values:
         latency_ms = (time.time() - start_time) * 1000
-        log_prediction(
+        db_log_prediction(
             client_id=client_id,
             input_features={},
             prediction=None,
@@ -138,7 +105,7 @@ def predict(client_id: int):
     # log succès
     t0 = time.time()
     timings["total"] = time.time() - start_time
-    log_prediction(
+    db_log_prediction(
         client_id=client_id,
         input_features=input_features_dict,
         prediction=decision,

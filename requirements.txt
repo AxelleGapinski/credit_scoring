@@ -8,3 +8,6 @@ lightgbm
 gradio
 pytest
 streamlit
+joblib
+psycopg2-binary
+python-dotenv
