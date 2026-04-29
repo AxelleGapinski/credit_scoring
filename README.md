@@ -44,6 +44,24 @@ Les données de production sont simulées à partir d’un sous‑ensemble du je
     └── sync.yml                # Sync vers Hugging Face Spaces
 ```
 
+## Monitoring
+
+### Lancer le dashboard
+```bash
+streamlit run monitoring/dashboard_logs.py
+```
+Dashboard accessible sur : http://localhost:8501
+
+### Ce que monitore le dashboard
+- Métriques opérationnelles : latence moyenne, taux d'erreurs, nombre de requêtes
+- Distribution des décisions : proportion de crédits accordés/refusés
+- Drift des variables: comparaison des distributions entre train et production pour quelques variables
+
+
+### Base de données de production
+Les prédictions sont stockées dans NeonDB (PostgreSQL cloud).
+Chaque appel API enregistre : timestamp, ID client, score, décision, latence, features.
+
 ## Lancer l’API localement
 
 1. Installer les dépendances
