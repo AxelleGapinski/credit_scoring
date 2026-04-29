@@ -16,7 +16,9 @@ Mise en production d'un modèle de scoring crédit développé dans une premièr
 - une API de scoring,
 - une conteneurisation Docker,
 - un pipeline CI/CD,
-- un monitoring des prédictions et des performances
+- un monitoring des prédictions et des performances,
+- un notebook d'analyse du data drift, 
+- une base de données NeonDB pour stoker les logs de prédictions
 Les données de production sont simulées à partir d’un sous‑ensemble du jeu d’entraînement.
 
 ## Architecture du repo
@@ -26,13 +28,11 @@ Les données de production sont simulées à partir d’un sous‑ensemble du je
 ├── requirements.txt
 ├── Dockerfile
 ├── README.md
+├── dashboard_logs.py       # Dashboard Streamlit de monitoring
+├── data_drift_analysis_ipynb  # notebook d'analyse du data drift
+├── db_logging.py  # gestion de la base de données NeonDB et des logs de prédiction stockés
 ├── train_test/
-│   └── sample_train.csv        # Sous-ensemble du dataset train d’origine
-├── logs/
-│   └── predictions.jsonl       # Logs des appels API
-├── monitoring/
-│   ├── analyse_logs.py         # Analyse des logs (métriques, drift)
-│   └── dashboard_logs.py       # Dashboard Streamlit de monitoring
+│   └── sample_train.csv        # Sous-ensemble du dataset train d’origine(métriques, drift)
 ├── tests/
 │   └── test_api.py             # Tests automatisés de l’API
 ├── notebooks/
@@ -40,8 +40,7 @@ Les données de production sont simulées à partir d’un sous‑ensemble du je
 │   ├── 2_3_mlflow_modelisation.ipynb
 │   └── 4_optimisation1.ipynb
 └── .github/workflows/
-    ├── ci.yml                  # CI : tests + build Docker
-    └── sync.yml                # Sync vers Hugging Face Spaces
+    └── ci_cd.yml                  # CI : tests + build Docker et CD sync vers HF Spaces
 ```
 
 ## Monitoring
